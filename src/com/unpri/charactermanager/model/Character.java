@@ -7,7 +7,6 @@ public class Character {
 
     private static int totalCharacterCreated = 0;
 
-    // Atribut
     private int id;
     private String name;
     private CharacterType type;
@@ -16,9 +15,11 @@ public class Character {
     private int attackPower;
     private int mana;
 
-    // Constructor 1: membuat karakter baru
     public Character(String name, CharacterType type, int level) {
-        this.name = name;
+
+        validateCharacter(name, type, level);
+
+        this.name = name.trim();
         this.type = type;
         this.level = level;
         this.hitPoints = calculateBaseHP();
@@ -28,11 +29,19 @@ public class Character {
         totalCharacterCreated++;
     }
 
-    // Constructor 2: memuat karakter dari database
     public Character(int id, String name, CharacterType type,
                      int level, int hitPoints, int attackPower) {
+
+        validateCharacter(name, type, level);
+
+        if (hitPoints < 0 || attackPower < 0) {
+            throw new IllegalArgumentException(
+                    "HP dan Attack Power tidak boleh negatif."
+            );
+        }
+
         this.id = id;
-        this.name = name;
+        this.name = name.trim();
         this.type = type;
         this.level = level;
         this.hitPoints = hitPoints;
@@ -42,7 +51,49 @@ public class Character {
         totalCharacterCreated++;
     }
 
-    // Helper method
+    // Validasi utama karakter
+    private static void validateCharacter(
+            String name, CharacterType type, int level) {
+
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Nama karakter tidak boleh kosong."
+            );
+        }
+
+        String cleanName = name.trim();
+
+        if (cleanName.length() > 20) {
+            throw new IllegalArgumentException(
+                    "Nama karakter maksimal 20 karakter."
+            );
+        }
+
+        if (!cleanName.matches("[\\p{L}]+(?: [\\p{L}]+)*")) {
+            throw new IllegalArgumentException(
+                    "Nama hanya boleh berisi huruf dan satu spasi antar kata."
+            );
+        }
+
+        if (type == null) {
+            throw new IllegalArgumentException(
+                    "Role karakter harus dipilih."
+            );
+        }
+
+        if (level < 1 || level > 99) {
+            throw new IllegalArgumentException(
+                    "Level harus berada di antara 1 sampai 99."
+            );
+        }
+
+        if (type == CharacterType.MAGE && level > 60) {
+            throw new IllegalArgumentException(
+                    "Karakter MAGE tidak boleh memiliki level lebih dari 60."
+            );
+        }
+    }
+
     private int calculateBaseHP() {
         return 100 + (level * 10);
     }
@@ -51,7 +102,6 @@ public class Character {
         return 10 + (level * 5);
     }
 
-    // Getter
     public int getId() {
         return id;
     }
@@ -80,22 +130,17 @@ public class Character {
         return mana;
     }
 
-    // Mengambil jumlah seluruh objek Character yang dibuat
     public static int getTotalCharacterCreated() {
         return totalCharacterCreated;
     }
 
-    // Setter
     public void setId(int id) {
         this.id = id;
     }
 
     public void setLevel(int level) {
-        if (level < 1) {
-            throw new IllegalArgumentException(
-                "Level minimal adalah 1"
-            );
-        }
+
+        validateCharacter(this.name, this.type, level);
 
         this.level = level;
         this.hitPoints = calculateBaseHP();
@@ -103,23 +148,23 @@ public class Character {
     }
 
     public void setMana(int mana) {
+
         if (mana < 0) {
             throw new IllegalArgumentException(
-                "Mana tidak boleh negatif"
+                    "Mana tidak boleh negatif."
             );
         }
 
         this.mana = mana;
     }
 
-    // Mengecek apakah karakter masih hidup
     public boolean isAlive() {
         return hitPoints > 0;
     }
 
-    // Membandingkan karakter berdasarkan nama
     @Override
     public boolean equals(Object obj) {
+
         if (this == obj) {
             return true;
         }
@@ -129,24 +174,29 @@ public class Character {
         }
 
         Character other = (Character) obj;
-        return Objects.equals(this.name, other.name);
+
+        return Objects.equals(
+                this.name.toLowerCase(),
+                other.name.toLowerCase()
+        );
     }
 
-    // hashCode harus konsisten dengan equals
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(name.toLowerCase());
     }
 
-    // Representasi teks objek
     @Override
     public String toString() {
-        return "Character{id=" + id +
-               ", name='" + name + '\'' +
-               ", type=" + type +
-               ", level=" + level +
-               ", hp=" + hitPoints +
-               ", atk=" + attackPower +
-               ", mana=" + mana + '}';
+
+        return "Character{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", type=" + type +
+                ", level=" + level +
+                ", hp=" + hitPoints +
+                ", atk=" + attackPower +
+                ", mana=" + mana +
+                '}';
     }
 }
